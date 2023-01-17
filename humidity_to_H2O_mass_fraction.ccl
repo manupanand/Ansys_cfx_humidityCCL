@@ -1,0 +1,77 @@
+LIBRARY:
+  CEL:
+    EXPRESSIONS:
+      #####################################################################################################
+      # Boundary Conditions
+      #####################################################################################################
+      BC Inlet Temperature     = 30 [C]
+      BC Inlet Rel Humidity    = 0.40
+      #####################################################################################################
+
+      #####################################################################################################
+      # Derived Boundary Condition Data BC
+      #####################################################################################################
+      # First determine the water vapour content in the gas phase based on the relative humidity and temperature
+      BC Inlet Psat                     = 1[bar]*10^(H2O A - H2O B/(BC Inlet Temperature + H2O C-273.15[K]))
+      BC Inlet Gas Phase H2O Mol Frac   = BC Inlet Rel Humidity*BC Inlet Psat/pabs
+      BC Inlet Gas Phase Air Mol Frac   = 1 - BC Inlet Gas Phase H2O Mol Frac
+      # Determine molar mass of the mixture
+      BC Inlet Gas Phase Mix Molar Mass = Molar Mass Water*BC Inlet Gas Phase H2O Mol Frac +  Molar Mass Air*BC Inlet Gas Phase Air Mol Frac
+      # Convert molar fraction into mass fraction for the gas phase
+      BC Inlet Gas Phase H2O Mass Frac =  (BC Inlet Gas Phase H2O Mol Frac*Molar Mass Water)/BC Inlet Gas Phase Mix Molar Mass
+      BC Inlet Gas Phase Air Mass Frac = 1-BC Inlet Gas Phase H2O Mass Frac 
+      #####################################################################################################
+      #Impeller parameter
+      #####################################################################################################
+      RPM = 10000 [rev min^-1]
+      Mass flow rate = 0.2 [kg s^-1]
+      # Pstag_in = areaAve(Total Pressure )@R1 Inlet,S1 Outlet
+      # Pstag_in = areaAve(Total Pressure )@R1 Inlet,S1 Outlet,areaAve(Total Temperature )@S1 Outlet
+      #####################################################################################################
+       #####################################################################################################
+     
+      Ptin = areaAve(Total Pressure )@R1 Inlet  
+      Ptout = areaAve(Total Pressure )@S1 Outlet
+      Ttin = areaAve(Total Temperature )@R1 Inlet
+      Ttout = areaAve(Total Temperature )@S1 Outlet
+      Cpair = 29.14 [kg kmol^-1 K^-1]
+      Cvair = 20.79 [kg kmol^-1 K^-1]
+      CpH2O = 75.3 [kg kmol^-1 K^-1]
+      CvH2O = 74.1 [kg kmol^-1 K^-1]
+      gammamix = Cpmix/Cvmix
+      Cpmix = (Cpair* BC Inlet Gas Phase Air Mol Frac) +(CpH2O*BC Inlet Gas Phase H2O Mol Frac)
+      Cvmix = (Cvair*BC Inlet Gas Phase Air Mol Frac)+(CvH2O*BC Inlet Gas Phase H2O Mol Frac)
+      PR = Ptout/Ptin
+      TR = Ttout/Ttin
+      GR = (gammamix-1)/gammamix
+      EFt = ((PR^GR)-1)/(TR-1)
+
+      #####################################################################################################
+    END
+  END
+END
+
+LIBRARY:
+  CEL:
+    EXPRESSIONS:
+
+      #####################################################################################################
+      # Material Properties
+      #####################################################################################################
+      # Molar Mass
+      Molar Mass Water = 18.02 [kg kmol^-1]
+      Molar Mass Air   = 28.96 [kg kmol^-1]
+
+      # Antoine Constants for Water (Poling et al.)
+      H2O A = 5.11564
+      H2O B = 1687.537 [K]
+      H2O C = 230.17 [K]
+
+      # Kinematic Diffusivity Vapor (Sutherland) 
+      My Mix Kinematic Diffusivity = (0.292[cm^2 s^-1 bar]/(pabs) ) *(T/313.0[K])^(3/2)
+      #####################################################################################################
+
+    END
+  END
+END
+
